@@ -10,9 +10,8 @@ fin_d1 = handle_d;
 fin_h2 = 6; // middle bulge height from base
 fin_d = 0; // mm, d2, middle_bulge size
 fin_d3 = stem_d;
-fin_l=.1;
+fin_l=.75;
 fin_w=25;
-fin_t=.1;
 fin_resolution_z = 21;
 fin_h = stem_height;
 
