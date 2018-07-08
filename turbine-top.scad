@@ -2,22 +2,22 @@ total_height = 16; // mm
 
 base_d = 4; // mm
 stem_d = 4; // mm
-handle_d = 1; // mm
+handle_d = 2; // mm
 handle_h = 3; // mm
 
-fin_count = 6;
+fin_count = 12;
 fin_d1 = handle_d;
 fin_h2 = 6; // middle bulge height from base
 fin_d = 0; // mm, d2, middle_bulge size
 fin_d3 = stem_d;
 fin_l=.1;
-fin_w=20;
+fin_w=25;
 fin_t=.1;
 fin_resolution_z = 21;
 fin_h = stem_height;
 
 fin_r = fin_d/2;
-twist = 3*360/fin_count;
+twist = 1.8*360/fin_count;
 fin_twist=0;
 
 epsilon = 0.01;
@@ -61,7 +61,7 @@ function curve(vec, h, t) = [
 ];
 fin_curve = curve(fin_scale, fin_h, fin_twist);
   
-echo(fin_curve);
+//echo(fin_curve);
   
 function steps(start, n, end) = [start : (end - start) / (n - 1) : end];
 function sum(vec, i=0, a=0) = i < len(vec) ? sum(vec, i+1, a+vec[i]) : a;
@@ -90,7 +90,7 @@ module fin_extrude(stepdef, twist) {
     
     module step(i) {
         //echo("step", stepdef[i]);
-        echo(steptx(i), stepty(i));
+        //echo(steptx(i), stepty(i));
         scalestart = stepscale(i-1);
         scaleend = stepscale(i) / stepscale(i-1);
         rotate([0, 0, -steptwiststart(i)])
@@ -184,20 +184,77 @@ module stem() {
 
 }
 
+module shell() {
+   
+/*
+ shell cross section diagram
+           .
+          /|
+         / |
+        /  |
+       .   |
+      /|   |
+     /#/   |
+    /##|   |
+   /##/[h] | [th]
+  /##|     | 
+ /a1#/a2   |
+.---.--.---.
+ [t]  d2
+  inset+t
+    [d/2]
+*/
+    d = fin_w+2;
+    t = 1.4;
+    th = stem_height-3;
+    h = th/2;
+    
+    a1 = atan2(th, d/2);
+    hy = th / sin(a1);
+    hy2 = h / sin(a1);
+    inset = h * 1/tan(a1) - t;
+    d2 = d/2-t;
+    
+    slope = 0;
+    
+    echo(inset=inset, d2=d2, d2alt = d/2-t, a2=a2, a1=a1);
+    
+
+    rotate_extrude(){
+        translate([0, 0])
+    polygon([[d/2, 0],  [d/2-inset, h], [d2, 0]]);
+    }
+    
+    
+}
+
+
+
+
 module spinner() {
-    base();
+    //base();
+    
     stem();
+    
     for(i=[0 : fin_count-1]) {
         rotate([0, 0, (i+.5) * 360 / fin_count]) fin(i=i);
     }
+    shell();
     
     // bracing
     b = fin_d-fin_w+(fin_h/fin_resolution_z)+.5;
     //ring(d=b) polygon([[1, 0],[.5,.5],[0, 0]]);
     
     d = fin_d+fin_w/2-(fin_h/fin_resolution_z);
-    ring(d=d) polygon([[1, 0],[.5,.5],[0, 0]]);
+    //ring(d=d) polygon([[1, 0],[.5,.5],[0, 0]]);
 }
 
 spinner();
+
+translate([fin_w/2, fin_w/2,])
+intersection() {
+    translate([-base_d/2, -base_d/2, 0])
+    cube([base_d, base_d, base_d/2]);
+    base();
+}
 
