@@ -1,22 +1,24 @@
-total_height = 16; // mm
+total_height = 24; // mm
 
 base_d = 4; // mm
 stem_d = 4; // mm
-handle_d = 2; // mm
-handle_h = 3; // mm
+handle_d = 3; // mm
+handle_h = 10; // mm
 
-fin_count = 12;
+fin_count = 6;
 fin_d1 = handle_d;
 fin_h2 = 6; // middle bulge height from base
 fin_d = 0; // mm, d2, middle_bulge size
 fin_d3 = stem_d;
 fin_l=.75;
-fin_w=25;
-fin_resolution_z = 21;
+fin_w=40;
+fin_resolution_z = 12;
 fin_h = stem_height;
 
+shell_ratio = 2.2;
+
 fin_r = fin_d/2;
-twist = 1.8*360/fin_count;
+twist = 1*360/fin_count;
 fin_twist=0;
 
 epsilon = 0.01;
@@ -183,7 +185,7 @@ module stem() {
 
 }
 
-module shell() {
+module shell1() {
    
 /*
  shell cross section diagram
@@ -199,46 +201,68 @@ module shell() {
   /##|     | 
  /a1#/a2   |
 .---.--.---.
+
  [t]  d2
   inset+t
     [d/2]
 */
+    translate([0, 0, 5])
+    {
     d = fin_w+2;
     t = 1.4;
-    th = stem_height-3;
-    h = th/2;
-    
-    a1 = atan2(th, d/2);
-    hy = th / sin(a1);
-    hy2 = h / sin(a1);
-    inset = h * 1/tan(a1) - t;
-    d2 = d/2-t;
-    
-    slope = 0;
-    
-    echo(inset=inset, d2=d2, d2alt = d/2-t, a2=a2, a1=a1);
-    
+    th = stem_height;
+    shell_height = stem_height/shell_ratio;
+    h = shell_height;
 
+    d2 = d/2-t;
+    inset = h/th * d2 - t;
+    
     rotate_extrude(){
         translate([0, 0])
     polygon([[d/2, 0],  [d/2-inset, h], [d2, 0]]);
     }
     
+    mirror([0, 0, 1])
+    rotate_extrude(){
+    
+    polygon([[d/2, 0],  [d/2-inset, h], [d2, 0]]);
+    }
+}
+    
     
 }
 
+module shell2() {
+     d = fin_w+2;
+    t = 1.4;
+    th = stem_height;
+    shell_height = stem_height/shell_ratio;
+    h = shell_height;
 
+    d2 = d/2-t;
+    inset = h/th * d2 - t;
+    
+    difference() {
+        hull() fins();
+        translate([0, 0, -epsilon])
+        cylinder(total_height, r=d/2-inset);
+    }
+}
+
+module fins() {
+    for(i=[0 : fin_count-1]) {
+        rotate([0, 0, (i+.5) * 360 / fin_count]) fin(i=i);
+    }
+}
 
 
 module spinner() {
     //base();
     
     stem();
-    
-    for(i=[0 : fin_count-1]) {
-        rotate([0, 0, (i+.5) * 360 / fin_count]) fin(i=i);
-    }
-    shell();
+    fins();
+
+    shell2();
     
     // bracing
     b = fin_d-fin_w+(fin_h/fin_resolution_z)+.5;
