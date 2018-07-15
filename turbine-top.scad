@@ -1,37 +1,35 @@
 total_height = 24; // mm
 
-base_d = 4; // mm
-stem_d = 4; // mm
-handle_d = 3; // mm
+base_d = 8; // mm
+stem_d = 6; // mm
+handle_d = 4; // mm
 handle_h = 10; // mm
 
-fin_count = 6;
+fin_count = 12;
 fin_d1 = handle_d;
 fin_h2 = 6; // middle bulge height from base
 fin_d = 0; // mm, d2, middle_bulge size
 fin_d3 = stem_d;
 fin_l=.75;
 fin_w=40;
-fin_resolution_z = 12;
+fin_resolution_z = 8;
 fin_h = stem_height;
 
 shell_ratio = 2.2;
 
 fin_r = fin_d/2;
-twist = 1*360/fin_count;
+twist = .8*360/fin_count;
 fin_twist=0;
+
+binding_height = 1;
+binding_d = 0.250 * fin_w;
 
 epsilon = 0.01;
 
 module fin_shape() {
-    scale([fin_w, fin_l]) square(1, center=true); //circle($fn=8);
-    if(false)
-    difference() {
-        scale([fin_w, fin_l]) circle($fs=8);
-        translate([0, -fin_t])
-        scale([fin_w, fin_l]) circle($fs=8);
-
-    }
+    scale([fin_w, fin_l]) square(1, center=true); 
+    //circle($fn=8);
+    
 }
 
 stem_height = total_height - base_d/2 - handle_h;
@@ -143,7 +141,7 @@ module fin(i) {
  //           scale([fin_w, fin_l])
  //               circle($fn=8, 1);
         }
-    }
+    };
 
 }
 
@@ -164,8 +162,7 @@ module stem() {
     
     // binding / adapter
     module binding() {
-    binding_height = 1;
-    binding_d = 0.20 * fin_w;
+
     translate([0, 0, total_height-base_d/2-handle_h-epsilon-binding_height/2])
        linear_extrude(scale=(handle_d / binding_d), height=binding_height)
             circle($fn=fin_count, d=binding_d);
@@ -251,8 +248,9 @@ module shell2() {
 
 module fins() {
     for(i=[0 : fin_count-1]) {
-        rotate([0, 0, (i+.5) * 360 / fin_count]) fin(i=i);
+        rotate([0, 0, (i) * 360 / fin_count]) fin(i=i);
     }
+
 }
 
 
@@ -262,14 +260,14 @@ module spinner() {
     stem();
     fins();
 
-    shell2();
+    //shell2();
     
     // bracing
     b = fin_d-fin_w+(fin_h/fin_resolution_z)+.5;
     //ring(d=b) polygon([[1, 0],[.5,.5],[0, 0]]);
     
     d = fin_d+fin_w/2-(fin_h/fin_resolution_z);
-    //ring(d=d) polygon([[1, 0],[.5,.5],[0, 0]]);
+    ring(d=d) polygon([[1, 0],[.5,.5],[0, 0]]);
 }
 
 spinner();
